@@ -154,7 +154,10 @@ RPC.prototype._cancel = function (index, err) {
   var req = this._reqs[index]
   this._ids[index] = 0
   this._reqs[index] = null
-  if (req) req.callback(err || new Error('Query was cancelled'))
+  if (req) {
+    this.inflight--
+    req.callback(err || new Error('Query was cancelled'))
+  }
 }
 
 RPC.prototype._resolveAndQuery = function (peer, query, cb) {
