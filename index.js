@@ -55,7 +55,12 @@ function RPC (opts) {
     if (type === 'r' || type === 'e') {
       if (!Buffer.isBuffer(message.t)) return
 
-      var tid = message.t.readUInt16BE(0)
+      try {
+        var tid = message.t.readUInt16BE(0)
+      } catch (err) {
+        return self.emit('warning', err)
+      }
+
       var index = self._ids.indexOf(tid)
 
       if (index === -1) return self.emit('warning', new Error('Unexpected transaction id: ' + tid))
