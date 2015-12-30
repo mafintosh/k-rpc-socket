@@ -5,6 +5,9 @@ var dns = require('dns')
 var util = require('util')
 var events = require('events')
 
+var ETIMEDOUT = new Error('Query timed out')
+ETIMEDOUT.code = 'ETIMEDOUT'
+
 module.exports = RPC
 
 function RPC (opts) {
@@ -33,7 +36,7 @@ function RPC (opts) {
       var req = self._reqs[i]
       if (!req) continue
       if (req.ttl) req.ttl--
-      else self._cancel(i, new Error('Query timed out'))
+      else self._cancel(i, ETIMEDOUT)
       if (!--missing) return
     }
   }
@@ -75,10 +78,14 @@ function RPC (opts) {
       if (type === 'e') {
         var err = new Error(Array.isArray(message.e) ? message.e.join(' ') : 'Unknown error')
         req.callback(err, message, rinfo, req.message)
+        self.emit('update')
+        self.emit('postupdate')
         return
       }
 
       req.callback(null, message, rinfo, req.message)
+      self.emit('update')
+      self.emit('postupdate')
     } else if (type === 'q') {
       self.emit('query', message, rinfo)
     } else {
@@ -161,7 +168,9 @@ RPC.prototype._cancel = function (index, err) {
   this._reqs[index] = null
   if (req) {
     this.inflight--
-    req.callback(err || new Error('Query was cancelled'))
+    req.callback(err || new Error('Query was cancelled'), null, req.peer)
+    this.emit('update')
+    this.emit('postupdate')
   }
 }
 
