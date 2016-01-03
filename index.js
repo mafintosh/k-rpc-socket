@@ -76,7 +76,9 @@ function RPC (opts) {
       self.inflight--
 
       if (type === 'e') {
-        var err = new Error(Array.isArray(message.e) ? message.e.join(' ') : 'Unknown error')
+        var isArray = Array.isArray(message.e)
+        var err = new Error(isArray ? message.e.join(' ') : 'Unknown error')
+        err.code = isArray && message.e.length && typeof message.e[0] === 'number' ? message.e[0] : 0
         req.callback(err, message, rinfo, req.message)
         self.emit('update')
         self.emit('postupdate')
