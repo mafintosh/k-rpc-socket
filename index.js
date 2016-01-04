@@ -21,6 +21,7 @@ function RPC (opts) {
   this.socket = dgram.createSocket('udp4')
   this.socket.on('message', onmessage)
   this.socket.on('error', onerror)
+  this.socket.on('listening', onlistening)
 
   this._tick = 0
   this._ids = []
@@ -39,6 +40,10 @@ function RPC (opts) {
       else self._cancel(i, ETIMEDOUT)
       if (!--missing) return
     }
+  }
+
+  function onlistening () {
+    self.emit('listening')
   }
 
   function onerror (err) {
