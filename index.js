@@ -62,7 +62,6 @@ function RPC (opts) {
 
     if (type === 'r' || type === 'e') {
       if (!Buffer.isBuffer(message.t)) return
-      self.emit('response', message, rinfo)
 
       try {
         var tid = message.t.readUInt16BE(0)
@@ -71,11 +70,18 @@ function RPC (opts) {
       }
 
       var index = self._ids.indexOf(tid)
-
-      if (index === -1) return self.emit('warning', new Error('Unexpected transaction id: ' + tid))
+      if (index === -1) {
+        self.emit('response', message, rinfo)
+        self.emit('warning', new Error('Unexpected transaction id: ' + tid))
+        return
+      }
 
       var req = self._reqs[index]
-      if (req.peer.host !== rinfo.address) return self.emit('warning', new Error('Out of order response'))
+      if (req.peer.host !== rinfo.address) {
+        self.emit('response', message, rinfo)
+        self.emit('warning', new Error('Out of order response'))
+        return
+      }
 
       self._ids[index] = 0
       self._reqs[index] = null
@@ -94,6 +100,7 @@ function RPC (opts) {
       req.callback(null, message, rinfo, req.message)
       self.emit('update')
       self.emit('postupdate')
+      self.emit('response', message, rinfo)
     } else if (type === 'q') {
       self.emit('query', message, rinfo)
     } else {
