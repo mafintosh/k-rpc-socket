@@ -62,6 +62,7 @@ function RPC (opts) {
 
     if (type === 'r' || type === 'e') {
       if (!Buffer.isBuffer(message.t)) return
+      self.emit('response', message, rinfo)
 
       try {
         var tid = message.t.readUInt16BE(0)
