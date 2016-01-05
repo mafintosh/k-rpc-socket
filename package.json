@@ -1,6 +1,6 @@
 {
   "name": "k-rpc-socket",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Low level implementation of the k-rpc network layer that the BitTorrent DHT uses",
   "main": "index.js",
   "dependencies": {
