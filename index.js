@@ -18,6 +18,7 @@ function RPC (opts) {
 
   this.timeout = opts.timeout || 2000
   this.inflight = 0
+  this.destroyed = false
   this.socket = dgram.createSocket('udp4')
   this.socket.on('message', onmessage)
   this.socket.on('error', onerror)
@@ -133,6 +134,7 @@ RPC.prototype.bind = function (port, cb) {
 }
 
 RPC.prototype.destroy = function (cb) {
+  this.destroyed = true
   clearInterval(this._timer)
   if (cb) this.socket.on('close', cb)
   for (var i = 0; i < this._ids.length; i++) this._cancel(i)
@@ -194,6 +196,7 @@ RPC.prototype._resolveAndQuery = function (peer, query, cb) {
 
   dns.lookup(peer.host, function (err, ip) {
     if (err) return cb(err)
+    if (self.destroyed) return cb(new Error('k-rpc-socket is destroyed'))
     self.query({host: ip, port: peer.port}, query, cb)
   })
 }
