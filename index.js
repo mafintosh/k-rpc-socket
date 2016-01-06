@@ -71,7 +71,7 @@ function RPC (opts) {
       }
 
       var index = self._ids.indexOf(tid)
-      if (index === -1) {
+      if (index === -1 || tid === 0) {
         self.emit('response', message, rinfo)
         self.emit('warning', new Error('Unexpected transaction id: ' + tid))
         return
