@@ -53,6 +53,7 @@ function RPC (opts) {
   }
 
   function onmessage (buf, rinfo) {
+    if (this.destroyed) return
     try {
       var message = bencode.decode(buf)
     } catch (e) {
