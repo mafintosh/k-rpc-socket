@@ -53,7 +53,9 @@ function RPC (opts) {
   }
 
   function onmessage (buf, rinfo) {
-    if (this.destroyed) return
+    if (self.destroyed) return
+    if (!rinfo.port) return // seems like a node bug that this is nessesary?
+
     try {
       var message = bencode.decode(buf)
     } catch (e) {
