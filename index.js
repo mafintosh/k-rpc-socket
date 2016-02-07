@@ -19,7 +19,7 @@ function RPC (opts) {
   this.timeout = opts.timeout || 2000
   this.inflight = 0
   this.destroyed = false
-  this.socket = dgram.createSocket('udp4')
+  this.socket = opts.socket || dgram.createSocket('udp4')
   this.socket.on('message', onmessage)
   this.socket.on('error', onerror)
   this.socket.on('listening', onlistening)

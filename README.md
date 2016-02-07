@@ -36,7 +36,8 @@ Create a new k-rpc-socket. Options include:
 
 ``` js
 {
-  timeout: queryTimeout // defaults to 2s
+  timeout: queryTimeout, // defaults to 2s
+  socket: optionalUdpSocket
 }
 ```
 
