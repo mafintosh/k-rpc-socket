@@ -4,7 +4,7 @@
   "description": "Low level implementation of the k-rpc network layer that the BitTorrent DHT uses",
   "main": "index.js",
   "dependencies": {
-    "bencode": "^0.9.0"
+    "bencode": "^0.10.0"
   },
   "devDependencies": {
     "standard": "^7.1.1",
