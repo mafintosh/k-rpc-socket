@@ -19,6 +19,7 @@ function RPC (opts) {
   this.timeout = opts.timeout || 2000
   this.inflight = 0
   this.destroyed = false
+  this.isIP = opts.isIP || isIP
   this.socket = opts.socket || dgram.createSocket('udp4')
   this.socket.on('message', onmessage)
   this.socket.on('error', onerror)
@@ -146,7 +147,7 @@ RPC.prototype.destroy = function (cb) {
 
 RPC.prototype.query = function (peer, query, cb) {
   if (!cb) cb = noop
-  if (!isIP(peer.host)) return this._resolveAndQuery(peer, query, cb)
+  if (!this.isIP(peer.host)) return this._resolveAndQuery(peer, query, cb)
 
   var message = {
     t: new Buffer(2),
