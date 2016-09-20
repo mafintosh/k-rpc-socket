@@ -1,13 +1,22 @@
 var tape = require('tape')
 var rpc = require('./')
 
-tape('query + response', function (t) {
-  var server = rpc()
+tape('ipv4 query + response', function (t) {
+  genericQuery(t, {}, '127.0.0.1')
+})
+
+
+tape('ipv6 query + response', function (t) {
+  genericQuery(t, {ipv6: true}, '::1')
+})
+
+function genericQuery(t, opts, address) {
+  var server = rpc(opts)
   var queried = false
 
   server.on('query', function (query, peer) {
     queried = true
-    t.same(peer.address, '127.0.0.1')
+    t.same(peer.address, address)
     t.same(query.q.toString(), 'hello_world')
     t.same(query.a, {hej: 10})
     server.response(peer, query, {hello: 42})
@@ -15,9 +24,9 @@ tape('query + response', function (t) {
 
   server.bind(0, function () {
     var port = server.address().port
-    var client = rpc()
+    var client = rpc(opts)
     t.same(client.inflight, 0)
-    client.query({host: '127.0.0.1', port: port}, {q: 'hello_world', a: {hej: 10}}, function (err, res) {
+    client.query({host: address, port: port}, {q: 'hello_world', a: {hej: 10}}, function (err, res) {
       t.same(client.inflight, 0)
       server.destroy()
       client.destroy()
@@ -28,7 +37,9 @@ tape('query + response', function (t) {
     })
     t.same(client.inflight, 1)
   })
-})
+}
+
+
 
 tape('parallel query', function (t) {
   var server = rpc()
