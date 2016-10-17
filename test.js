@@ -1,14 +1,6 @@
 var tape = require('tape')
 var rpc = require('./')
 
-tape('ipv4 query + response', function (t) {
-  genericQuery(t, {}, '127.0.0.1')
-})
-
-tape('ipv6 query + response', function (t) {
-  genericQuery(t, {ipv6: true}, '::1')
-})
-
 wrapTest(tape, 'query + response', function(t, ipv6) {
   var server = rpc({ipv6: ipv6})
   var address = localHost(ipv6, true)
@@ -24,7 +16,7 @@ wrapTest(tape, 'query + response', function(t, ipv6) {
 
   server.bind(0, function () {
     var port = server.address().port
-    var client = rpc(opts)
+    var client = rpc({ipv6: ipv6})
     t.same(client.inflight, 0)
     client.query({host: address, port: port}, {q: 'hello_world', a: {hej: 10}}, function (err, res) {
       t.same(client.inflight, 0)
@@ -48,7 +40,7 @@ wrapTest(tape, 'parallel query', function (t, ipv6) {
 
   server.bind(0, function () {
     var port = server.address().port
-    var client = rpc()
+    var client = rpc({ipv6: ipv6})
     var peer = {host: localHost(ipv6, true), port: port}
 
     client.query(peer, {q: 'echo', a: 1}, function (_, res) {
@@ -80,7 +72,7 @@ wrapTest(tape, 'query + error', function (t, ipv6) {
 
   server.bind(0, function () {
     var port = server.address().port
-    var client = rpc()
+    var client = rpc({ipv6: ipv6})
     client.query({host: localHost(ipv6, true), port: port}, {q: 'hello_world', a: {hej: 10}}, function (err) {
       client.destroy()
       server.destroy()
