@@ -200,8 +200,16 @@ RPC.prototype._cancel = function (index, err) {
   }
 }
 
+RPC.prototype.checkHostProtocol = function (host) {
+  if ((this.ipv6 && net.isIPv4(host)) || (!this.ipv6 && net.isIPv6(host))) {
+    throw new Error("Address protocol mismatch! Expected an " + (this.ipv6 ? "IPv6" : "IPv4") + " address, but '" + host + "' was provided")
+  }
+}
+
 RPC.prototype._resolveAndQuery = function (peer, query, cb) {
   var self = this
+
+  this.checkHostProtocol(peer.host)
 
   dns.lookup(peer.host, self.ipv6 ? 6 : 4, function (err, ip) {
     if (err) return cb(err)
