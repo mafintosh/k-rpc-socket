@@ -1,7 +1,7 @@
 var tape = require('tape')
 var rpc = require('./')
 
-wrapTest(tape, 'query + response', function(t, ipv6) {
+wrapTest(tape, 'query + response', function (t, ipv6) {
   var server = rpc({ipv6: ipv6})
   var address = localHost(ipv6, true)
   var queried = false
@@ -94,7 +94,7 @@ wrapTest(tape, 'timeout', function (t, ipv6) {
   })
 })
 
-function localHost(ipv6, plainIpv6) {
+function localHost (ipv6, plainIpv6) {
   if (ipv6) {
     if (!plainIpv6) {
       return '[::1]'
@@ -104,7 +104,7 @@ function localHost(ipv6, plainIpv6) {
   return '127.0.0.1'
 }
 
-function wrapTest(test, str, func) {
+function wrapTest (test, str, func) {
   test('ipv4 ' + str, function (t) {
     func(t, false)
     if (t._plan) {
