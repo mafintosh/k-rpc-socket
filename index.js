@@ -21,7 +21,7 @@ function RPC (opts) {
   this.destroyed = false
   this.ipv6 = !!opts.ipv6
   this.isIP = opts.isIP || (this.ipv6 ? net.isIPv6 : net.isIPv4)
-  this.socket = opts.socket || dgram.createSocket(this.ipv6 ? "udp6" : "udp4")
+  this.socket = opts.socket || dgram.createSocket(this.ipv6 ? 'udp6' : 'udp4')
   this.socket.on('message', onmessage)
   this.socket.on('error', onerror)
   this.socket.on('listening', onlistening)
@@ -202,7 +202,7 @@ RPC.prototype._cancel = function (index, err) {
 
 RPC.prototype.checkHostProtocol = function (host) {
   if ((this.ipv6 && net.isIPv4(host)) || (!this.ipv6 && net.isIPv6(host))) {
-    throw new Error("Address protocol mismatch! Expected an " + (this.ipv6 ? "IPv6" : "IPv4") + " address, but '" + host + "' was provided")
+    throw new Error('Address protocol mismatch! Expected an ' + (this.ipv6 ? 'IPv6' : 'IPv4') + " address, but '" + host + "' was provided")
   }
 }
 

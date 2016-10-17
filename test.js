@@ -5,13 +5,13 @@ tape('ipv4 query + response', function (t) {
   genericQuery(t, {}, '127.0.0.1')
 })
 
-
 tape('ipv6 query + response', function (t) {
   genericQuery(t, {ipv6: true}, '::1')
 })
 
-function genericQuery(t, opts, address) {
-  var server = rpc(opts)
+wrapTest(tape, 'query + response', function(t, ipv6) {
+  var server = rpc({ipv6: ipv6})
+  var address = localHost(ipv6, true)
   var queried = false
 
   server.on('query', function (query, peer) {
@@ -37,12 +37,10 @@ function genericQuery(t, opts, address) {
     })
     t.same(client.inflight, 1)
   })
-}
+})
 
-
-
-tape('parallel query', function (t) {
-  var server = rpc()
+wrapTest(tape, 'parallel query', function (t, ipv6) {
+  var server = rpc({ipv6: ipv6})
 
   server.on('query', function (query, peer) {
     server.response(peer, query, {echo: query.a})
@@ -51,7 +49,7 @@ tape('parallel query', function (t) {
   server.bind(0, function () {
     var port = server.address().port
     var client = rpc()
-    var peer = {host: '127.0.0.1', port: port}
+    var peer = {host: localHost(ipv6, true), port: port}
 
     client.query(peer, {q: 'echo', a: 1}, function (_, res) {
       t.same(res.r, {echo: 1})
@@ -73,8 +71,8 @@ tape('parallel query', function (t) {
   })
 })
 
-tape('query + error', function (t) {
-  var server = rpc()
+wrapTest(tape, 'query + error', function (t, ipv6) {
+  var server = rpc({ipv6: ipv6})
 
   server.on('query', function (query, peer) {
     server.error(peer, query, 'oh no')
@@ -83,7 +81,7 @@ tape('query + error', function (t) {
   server.bind(0, function () {
     var port = server.address().port
     var client = rpc()
-    client.query({host: '127.0.0.1', port: port}, {q: 'hello_world', a: {hej: 10}}, function (err) {
+    client.query({host: localHost(ipv6, true), port: port}, {q: 'hello_world', a: {hej: 10}}, function (err) {
       client.destroy()
       server.destroy()
       t.ok(err)
@@ -93,8 +91,8 @@ tape('query + error', function (t) {
   })
 })
 
-tape('timeout', function (t) {
-  var socket = rpc({timeout: 100})
+wrapTest(tape, 'timeout', function (t, ipv6) {
+  var socket = rpc({timeout: 100, ipv6: ipv6})
 
   socket.query({host: 'example.com', port: 12345}, {q: 'timeout'}, function (err) {
     socket.destroy()
@@ -103,3 +101,26 @@ tape('timeout', function (t) {
     t.end()
   })
 })
+
+function localHost(ipv6, plainIpv6) {
+  if (ipv6) {
+    if (!plainIpv6) {
+      return '[::1]'
+    }
+    return '::1'
+  }
+  return '127.0.0.1'
+}
+
+function wrapTest(test, str, func) {
+  test('ipv4 ' + str, function (t) {
+    func(t, false)
+    if (t._plan) {
+      t.plan(t._plan + 1)
+    }
+
+    t.test('ipv6 ' + str, function (newT) {
+      func(newT, true)
+    })
+  })
+}
