@@ -22,7 +22,7 @@ socket.on('query', function (query, peer) {
 
 socket.bind(10000, function () {
   var anotherSocket = rpc()
-  anotherSocket.query({host: '127.0.0.1', port: 10000}, {hello: 'world'}, function (err, response) {
+  anotherSocket.query({host: '127.0.0.1', port: 10000}, {q: 'echo', a: {hello: 'world'}}, function (err, response) {
     console.log(response.r) // prints {echo: {hello: Buffer('world')}}
   })
 })
