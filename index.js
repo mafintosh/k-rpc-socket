@@ -1,6 +1,6 @@
 var dgram = require('dgram')
 var bencode = require('bencode')
-var isIP = require('net').isIP
+var net = require('net')
 var dns = require('dns')
 var util = require('util')
 var events = require('events')
@@ -19,8 +19,9 @@ function RPC (opts) {
   this.timeout = opts.timeout || 2000
   this.inflight = 0
   this.destroyed = false
-  this.isIP = opts.isIP || isIP
-  this.socket = opts.socket || dgram.createSocket('udp4')
+  this.ipv6 = !!opts.ipv6
+  this.isIP = opts.isIP || (this.ipv6 ? net.isIPv6 : net.isIPv4)
+  this.socket = opts.socket || dgram.createSocket(this.ipv6 ? 'udp6' : 'udp4')
   this.socket.on('message', onmessage)
   this.socket.on('error', onerror)
   this.socket.on('listening', onlistening)
@@ -178,6 +179,10 @@ RPC.prototype.query = function (peer, query, cb) {
   return tid
 }
 
+RPC.prototype.matches = function (peer) {
+  return this.isIP(peer.address || peer.host)
+}
+
 RPC.prototype.cancel = function (tid, err) {
   var index = this._ids.indexOf(tid)
   if (index > -1) this._cancel(index, err)
@@ -195,10 +200,18 @@ RPC.prototype._cancel = function (index, err) {
   }
 }
 
+RPC.prototype.checkHostProtocol = function (host) {
+  if ((this.ipv6 && net.isIPv4(host)) || (!this.ipv6 && net.isIPv6(host))) {
+    throw new Error('Address protocol mismatch! Expected an ' + (this.ipv6 ? 'IPv6' : 'IPv4') + " address, but '" + host + "' was provided")
+  }
+}
+
 RPC.prototype._resolveAndQuery = function (peer, query, cb) {
   var self = this
 
-  dns.lookup(peer.host, function (err, ip) {
+  this.checkHostProtocol(peer.host)
+
+  dns.lookup(peer.host, self.ipv6 ? 6 : 4, function (err, ip) {
     if (err) return cb(err)
     if (self.destroyed) return cb(new Error('k-rpc-socket is destroyed'))
     self.query({host: ip, port: peer.port}, query, cb)
