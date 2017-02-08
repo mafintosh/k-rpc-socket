@@ -7,7 +7,7 @@ Mostly extracted from the [bittorrent-dht](https://github.com/feross/bittorrent-
 npm install k-rpc-socket
 ```
 
-[![build status](http://img.shields.io/travis/mafintosh/k-rpc-socket.svg?style=flat)](http://travis-ci.org/mafintosh/k-rpc-socket)
+[![build status](http://travis-ci.org/mafintosh/k-rpc-socket.svg?branch=master)](http://travis-ci.org/mafintosh/k-rpc-socket)
 
 ## Usage
 
