@@ -63,7 +63,7 @@ function RPC (opts) {
       return self.emit('warning', e)
     }
 
-    var type = message.y && message.y.toString()
+    var type = message && message.y && message.y.toString()
 
     if (type === 'r' || type === 'e') {
       if (!Buffer.isBuffer(message.t)) return

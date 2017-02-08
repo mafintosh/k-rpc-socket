@@ -95,6 +95,12 @@ tape('timeout', function (t) {
 })
 
 tape('do not crash on empty string', function (t) {
+  if (/^v0\.10\./.test(process.version)) {
+    // Sending a zero length udp message does not work on Node 0.10
+    t.pass('skipping test on Node 0.10')
+    t.end()
+    return
+  }
   var server = rpc()
   var socket = dgram.createSocket('udp4')
 
