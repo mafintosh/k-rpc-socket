@@ -1,5 +1,6 @@
 var tape = require('tape')
 var rpc = require('./')
+var dgram = require('dgram')
 
 tape('query + response', function (t) {
   var server = rpc()
@@ -90,5 +91,32 @@ tape('timeout', function (t) {
     t.ok(err)
     t.same(err.message, 'Query timed out')
     t.end()
+  })
+})
+
+tape('do not crash on empty string', function (t) {
+  if (/^v0\.10\./.test(process.version)) {
+    // Sending a zero length udp message does not work on Node 0.10
+    t.pass('skipping test on Node 0.10')
+    t.end()
+    return
+  }
+  var server = rpc()
+  var socket = dgram.createSocket('udp4')
+
+  server.on('query', function (query, peer) {
+    t.fail('should not get a query')
+  })
+
+  server.on('warning', function (err) {
+    t.ok(err instanceof Error, 'got expected warning')
+    server.destroy()
+    socket.close()
+    t.end()
+  })
+
+  server.bind(0, function () {
+    var port = server.address().port
+    socket.send('' /* invalid bencoded data */, 0, 0, port, '127.0.0.1')
   })
 })
