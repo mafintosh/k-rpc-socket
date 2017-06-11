@@ -201,7 +201,8 @@ RPC.prototype._resolveAndQuery = function (peer, query, cb) {
   dns.lookup(peer.host, function (err, ip) {
     if (err) return cb(err)
     if (self.destroyed) return cb(new Error('k-rpc-socket is destroyed'))
-    self.query({host: ip, port: peer.port}, query, cb)
+    var newPeer = Object.assign({}, peer, {host: ip})
+    self.query(newPeer, query, cb)
   })
 }
 
