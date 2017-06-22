@@ -150,7 +150,7 @@ RPC.prototype.query = function (peer, query, cb) {
   if (!this.isIP(peer.host)) return this._resolveAndQuery(peer, query, cb)
 
   var message = {
-    t: new Buffer(2),
+    t: Buffer.allocUnsafe(2),
     y: 'q',
     q: query.q,
     a: query.a
