@@ -4,6 +4,7 @@ var isIP = require('net').isIP
 var dns = require('dns')
 var util = require('util')
 var events = require('events')
+var Buffer = require('safe-buffer').Buffer
 
 var ETIMEDOUT = new Error('Query timed out')
 ETIMEDOUT.code = 'ETIMEDOUT'
@@ -133,8 +134,9 @@ RPC.prototype.send = function (peer, message, cb) {
   this.socket.send(buf, 0, buf.length, peer.port, peer.address || peer.host, cb || noop)
 }
 
-RPC.prototype.bind = function (port, cb) {
-  this.socket.bind(port, cb)
+// bind([port], [address], [callback])
+RPC.prototype.bind = function () {
+  this.socket.bind.apply(this.socket, arguments)
 }
 
 RPC.prototype.destroy = function (cb) {
@@ -150,7 +152,7 @@ RPC.prototype.query = function (peer, query, cb) {
   if (!this.isIP(peer.host)) return this._resolveAndQuery(peer, query, cb)
 
   var message = {
-    t: new Buffer(2),
+    t: Buffer.allocUnsafe(2),
     y: 'q',
     q: query.q,
     a: query.a
