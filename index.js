@@ -133,8 +133,9 @@ RPC.prototype.send = function (peer, message, cb) {
   this.socket.send(buf, 0, buf.length, peer.port, peer.address || peer.host, cb || noop)
 }
 
-RPC.prototype.bind = function (port, cb) {
-  this.socket.bind(port, cb)
+// bind([port], [address], [callback])
+RPC.prototype.bind = function () {
+  this.socket.bind.apply(this.socket, arguments)
 }
 
 RPC.prototype.destroy = function (cb) {

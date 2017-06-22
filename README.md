@@ -73,9 +73,13 @@ Integer representing the number of concurrent queries that are currently pending
 
 Destroys and unbinds the socket
 
-#### `socket.bind(port, callback)`
+#### `socket.bind([port], [address], [callback])`
 
-Call this to bind to a specific port. If you don't call this a random free port will be chosen.
+Call this to bind to a specific port. If port is not specified or is 0, the operating system
+will attempt to bind to a random port. If address is not specified, the operating system will
+attempt to listen on all addresses.
+
+If you don't call this a random free port will be chosen.
 
 #### `socket.on('query', query, peer)`
 
