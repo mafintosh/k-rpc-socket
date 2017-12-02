@@ -5,9 +5,13 @@ var dns = require('dns')
 var util = require('util')
 var events = require('events')
 var Buffer = require('safe-buffer').Buffer
+var equals = require('buffer-equals')
 
 var ETIMEDOUT = new Error('Query timed out')
 ETIMEDOUT.code = 'ETIMEDOUT'
+
+var EUNEXPECTEDNODE = new Error('Unexpected node id')
+EUNEXPECTEDNODE.code = 'EUNEXPECTEDNODE'
 
 module.exports = RPC
 
@@ -98,6 +102,14 @@ function RPC (opts) {
         var err = new Error(isArray ? message.e.join(' ') : 'Unknown error')
         err.code = isArray && message.e.length && typeof message.e[0] === 'number' ? message.e[0] : 0
         req.callback(err, message, rinfo, req.message)
+        self.emit('update')
+        self.emit('postupdate')
+        return
+      }
+
+      var rid = message.r && message.r.id
+      if (req.peer && req.peer.id && rid && !equals(req.peer.id, rid)) {
+        req.callback(EUNEXPECTEDNODE, null, rinfo)
         self.emit('update')
         self.emit('postupdate')
         return
