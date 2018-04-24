@@ -33,7 +33,7 @@ function RPC (opts) {
   this._tick = 0
   this._ids = []
   this._reqs = []
-  this._timer = setInterval(check, (this.timeout / 4) | 0)
+  this._timer = setInterval(check, Math.floor(this.timeout / 4))
 
   events.EventEmitter.call(this)
 
