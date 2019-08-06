@@ -132,11 +132,11 @@ RPC.prototype.address = function () {
 }
 
 RPC.prototype.response = function (peer, req, res, cb) {
-  this.send(peer, {t: req.t, y: 'r', r: res}, cb)
+  this.send(peer, { t: req.t, y: 'r', r: res }, cb)
 }
 
 RPC.prototype.error = function (peer, req, error, cb) {
-  this.send(peer, {t: req.t, y: 'e', e: [].concat(error.message || error)}, cb)
+  this.send(peer, { t: req.t, y: 'e', e: [].concat(error.message || error) }, cb)
 }
 
 RPC.prototype.send = function (peer, message, cb) {
@@ -213,7 +213,7 @@ RPC.prototype._resolveAndQuery = function (peer, query, cb) {
   dns.lookup(peer.host, function (err, ip) {
     if (err) return cb(err)
     if (self.destroyed) return cb(new Error('k-rpc-socket is destroyed'))
-    self.query({host: ip, port: peer.port}, query, cb)
+    self.query({ host: ip, port: peer.port }, query, cb)
   })
 }
 
