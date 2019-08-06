@@ -4,8 +4,6 @@ var isIP = require('net').isIP
 var dns = require('dns')
 var util = require('util')
 var events = require('events')
-var Buffer = require('safe-buffer').Buffer
-var equals = require('buffer-equals')
 
 var ETIMEDOUT = new Error('Query timed out')
 ETIMEDOUT.code = 'ETIMEDOUT'
@@ -108,7 +106,7 @@ function RPC (opts) {
       }
 
       var rid = message.r && message.r.id
-      if (req.peer && req.peer.id && rid && !equals(req.peer.id, rid)) {
+      if (req.peer && req.peer.id && rid && !req.peer.id.equals(rid)) {
         req.callback(EUNEXPECTEDNODE, null, rinfo)
         self.emit('update')
         self.emit('postupdate')
@@ -134,11 +132,11 @@ RPC.prototype.address = function () {
 }
 
 RPC.prototype.response = function (peer, req, res, cb) {
-  this.send(peer, {t: req.t, y: 'r', r: res}, cb)
+  this.send(peer, { t: req.t, y: 'r', r: res }, cb)
 }
 
 RPC.prototype.error = function (peer, req, error, cb) {
-  this.send(peer, {t: req.t, y: 'e', e: [].concat(error.message || error)}, cb)
+  this.send(peer, { t: req.t, y: 'e', e: [].concat(error.message || error) }, cb)
 }
 
 RPC.prototype.send = function (peer, message, cb) {
@@ -215,7 +213,7 @@ RPC.prototype._resolveAndQuery = function (peer, query, cb) {
   dns.lookup(peer.host, function (err, ip) {
     if (err) return cb(err)
     if (self.destroyed) return cb(new Error('k-rpc-socket is destroyed'))
-    self.query({host: ip, port: peer.port}, query, cb)
+    self.query({ host: ip, port: peer.port }, query, cb)
   })
 }
 

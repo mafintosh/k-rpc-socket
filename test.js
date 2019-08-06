@@ -10,21 +10,21 @@ tape('query + response', function (t) {
     queried = true
     t.same(peer.address, '127.0.0.1')
     t.same(query.q.toString(), 'hello_world')
-    t.same(query.a, {hej: 10})
-    server.response(peer, query, {hello: 42})
+    t.same(query.a, { hej: 10 })
+    server.response(peer, query, { hello: 42 })
   })
 
   server.bind(0, function () {
     var port = server.address().port
     var client = rpc()
     t.same(client.inflight, 0)
-    client.query({host: '127.0.0.1', port: port}, {q: 'hello_world', a: {hej: 10}}, function (err, res) {
+    client.query({ host: '127.0.0.1', port: port }, { q: 'hello_world', a: { hej: 10 } }, function (err, res) {
       t.same(client.inflight, 0)
       server.destroy()
       client.destroy()
       t.error(err)
       t.ok(queried)
-      t.same(res.r, {hello: 42})
+      t.same(res.r, { hello: 42 })
       t.end()
     })
     t.same(client.inflight, 1)
@@ -35,20 +35,20 @@ tape('parallel query', function (t) {
   var server = rpc()
 
   server.on('query', function (query, peer) {
-    server.response(peer, query, {echo: query.a})
+    server.response(peer, query, { echo: query.a })
   })
 
   server.bind(0, function () {
     var port = server.address().port
     var client = rpc()
-    var peer = {host: '127.0.0.1', port: port}
+    var peer = { host: '127.0.0.1', port: port }
 
-    client.query(peer, {q: 'echo', a: 1}, function (_, res) {
-      t.same(res.r, {echo: 1})
+    client.query(peer, { q: 'echo', a: 1 }, function (_, res) {
+      t.same(res.r, { echo: 1 })
       done()
     })
-    client.query(peer, {q: 'echo', a: 2}, function (_, res) {
-      t.same(res.r, {echo: 2})
+    client.query(peer, { q: 'echo', a: 2 }, function (_, res) {
+      t.same(res.r, { echo: 2 })
       done()
     })
 
@@ -73,7 +73,7 @@ tape('query + error', function (t) {
   server.bind(0, function () {
     var port = server.address().port
     var client = rpc()
-    client.query({host: '127.0.0.1', port: port}, {q: 'hello_world', a: {hej: 10}}, function (err) {
+    client.query({ host: '127.0.0.1', port: port }, { q: 'hello_world', a: { hej: 10 } }, function (err) {
       client.destroy()
       server.destroy()
       t.ok(err)
@@ -84,9 +84,9 @@ tape('query + error', function (t) {
 })
 
 tape('timeout', function (t) {
-  var socket = rpc({timeout: 100})
+  var socket = rpc({ timeout: 100 })
 
-  socket.query({host: 'example.com', port: 12345}, {q: 'timeout'}, function (err) {
+  socket.query({ host: 'example.com', port: 12345 }, { q: 'timeout' }, function (err) {
     socket.destroy()
     t.ok(err)
     t.same(err.message, 'Query timed out')
