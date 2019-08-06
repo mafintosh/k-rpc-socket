@@ -4,7 +4,6 @@ var isIP = require('net').isIP
 var dns = require('dns')
 var util = require('util')
 var events = require('events')
-var equals = require('buffer-equals')
 
 var ETIMEDOUT = new Error('Query timed out')
 ETIMEDOUT.code = 'ETIMEDOUT'
@@ -107,7 +106,7 @@ function RPC (opts) {
       }
 
       var rid = message.r && message.r.id
-      if (req.peer && req.peer.id && rid && !equals(req.peer.id, rid)) {
+      if (req.peer && req.peer.id && rid && !req.peer.id.equals(rid)) {
         req.callback(EUNEXPECTEDNODE, null, rinfo)
         self.emit('update')
         self.emit('postupdate')
