@@ -4,7 +4,6 @@ var isIP = require('net').isIP
 var dns = require('dns')
 var util = require('util')
 var events = require('events')
-var Buffer = require('safe-buffer').Buffer
 var equals = require('buffer-equals')
 
 var ETIMEDOUT = new Error('Query timed out')
