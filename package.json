@@ -3,8 +3,14 @@
   "version": "1.9.0",
   "description": "Low level implementation of the k-rpc network layer that the BitTorrent DHT uses",
   "main": "index.js",
+  "chromeapp": {
+    "dgram": "chrome-dgram",
+    "net": "chrome-net"
+  },
   "dependencies": {
-    "bencode": "^2.0.0"
+    "bencode": "^2.0.0",
+    "chrome-dgram": "^3.0.2",
+    "chrome-net": "^3.3.2"
   },
   "devDependencies": {
     "standard": "*",
