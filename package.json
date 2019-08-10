@@ -5,11 +5,13 @@
   "main": "index.js",
   "chromeapp": {
     "dgram": "chrome-dgram",
+    "dns": "chrome-dns",
     "net": "chrome-net"
   },
   "dependencies": {
     "bencode": "^2.0.0",
     "chrome-dgram": "^3.0.2",
+    "chrome-dns": "^1.0.0",
     "chrome-net": "^3.3.2"
   },
   "devDependencies": {
