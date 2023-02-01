@@ -12,16 +12,16 @@ npm install k-rpc-socket
 ## Usage
 
 ``` js
-var rpc = require('k-rpc-socket')
+import RPC from 'k-rpc-socket'
 
-var socket = rpc()
+const socket = new RPC()
 
 socket.on('query', function (query, peer) {
   socket.response(peer, query, {echo: query.a})
 })
 
 socket.bind(10000, function () {
-  var anotherSocket = rpc()
+  const anotherSocket = new RPC()
   anotherSocket.query({host: '127.0.0.1', port: 10000}, {q: 'echo', a: {hello: 'world'}}, function (err, response) {
     console.log(response.r) // prints {echo: {hello: Buffer('world')}}
   })
@@ -30,7 +30,7 @@ socket.bind(10000, function () {
 
 ## API
 
-#### `var socket = rpc([options])`
+#### `const socket = new RPC([options])`
 
 Create a new k-rpc-socket. Options include:
 
@@ -46,7 +46,7 @@ Create a new k-rpc-socket. Options include:
 
 Send a raw message. The callback is called when the message has been flushed from the socket.
 
-#### `var id = socket.query(peer, query, [callback])`
+#### `const id = socket.query(peer, query, [callback])`
 
 Send a query message. The callback is called with `(err, response, peer, request)`.
 You should set the method name you are trying to call as `{q: 'method_name'}` and query data as `{a: someQueryData}`.

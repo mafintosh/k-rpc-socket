@@ -1,24 +1,24 @@
-var tape = require('tape')
-var rpc = require('./')
-var dgram = require('dgram')
+import tape from 'tape'
+import RPC from './index.js'
+import dgram from 'dgram'
 
 tape('query + response', function (t) {
-  var server = rpc()
-  var queried = false
+  const server = new RPC()
+  let queried = false
 
   server.on('query', function (query, peer) {
     queried = true
     t.same(peer.address, '127.0.0.1')
-    t.same(query.q.toString(), 'hello_world')
+    t.same(Buffer.from(query.q).toString(), 'hello_world')
     t.same(query.a, { hej: 10 })
     server.response(peer, query, { hello: 42 })
   })
 
-  server.bind(0, function () {
-    var port = server.address().port
-    var client = rpc()
+  server.bind(0, function (a) {
+    const port = server.address().port
+    const client = new RPC()
     t.same(client.inflight, 0)
-    client.query({ host: '127.0.0.1', port: port }, { q: 'hello_world', a: { hej: 10 } }, function (err, res) {
+    client.query({ host: '127.0.0.1', port }, { q: 'hello_world', a: { hej: 10 } }, function (err, res) {
       t.same(client.inflight, 0)
       server.destroy()
       client.destroy()
@@ -32,16 +32,16 @@ tape('query + response', function (t) {
 })
 
 tape('parallel query', function (t) {
-  var server = rpc()
+  const server = new RPC()
 
   server.on('query', function (query, peer) {
     server.response(peer, query, { echo: query.a })
   })
 
   server.bind(0, function () {
-    var port = server.address().port
-    var client = rpc()
-    var peer = { host: '127.0.0.1', port: port }
+    const port = server.address().port
+    const client = new RPC()
+    const peer = { host: '127.0.0.1', port }
 
     client.query(peer, { q: 'echo', a: 1 }, function (_, res) {
       t.same(res.r, { echo: 1 })
@@ -64,16 +64,16 @@ tape('parallel query', function (t) {
 })
 
 tape('query + error', function (t) {
-  var server = rpc()
+  const server = new RPC()
 
   server.on('query', function (query, peer) {
     server.error(peer, query, 'oh no')
   })
 
   server.bind(0, function () {
-    var port = server.address().port
-    var client = rpc()
-    client.query({ host: '127.0.0.1', port: port }, { q: 'hello_world', a: { hej: 10 } }, function (err) {
+    const port = server.address().port
+    const client = new RPC()
+    client.query({ host: '127.0.0.1', port }, { q: 'hello_world', a: { hej: 10 } }, function (err) {
       client.destroy()
       server.destroy()
       t.ok(err)
@@ -84,7 +84,7 @@ tape('query + error', function (t) {
 })
 
 tape('timeout', function (t) {
-  var socket = rpc({ timeout: 100 })
+  const socket = new RPC({ timeout: 100 })
 
   socket.query({ host: 'example.com', port: 12345 }, { q: 'timeout' }, function (err) {
     socket.destroy()
@@ -101,8 +101,8 @@ tape('do not crash on empty string', function (t) {
     t.end()
     return
   }
-  var server = rpc()
-  var socket = dgram.createSocket('udp4')
+  const server = new RPC()
+  const socket = dgram.createSocket('udp4')
 
   server.on('query', function (query, peer) {
     t.fail('should not get a query')
@@ -116,7 +116,7 @@ tape('do not crash on empty string', function (t) {
   })
 
   server.bind(0, function () {
-    var port = server.address().port
+    const port = server.address().port
     socket.send('' /* invalid bencoded data */, 0, 0, port, '127.0.0.1')
   })
 })
