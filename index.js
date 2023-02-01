@@ -1,23 +1,22 @@
-var dgram = require('dgram')
-var bencode = require('bencode')
-var isIP = require('net').isIP
-var dns = require('dns')
-var util = require('util')
-var events = require('events')
+import dgram from 'dgram'
+import bencode from 'bencode'
+import { isIP } from 'net'
+import dns from 'dns'
+import util from 'util'
+import { EventEmitter } from 'events'
+import { arr2text } from 'uint8-util'
 
-var ETIMEDOUT = new Error('Query timed out')
+const ETIMEDOUT = new Error('Query timed out')
 ETIMEDOUT.code = 'ETIMEDOUT'
 
-var EUNEXPECTEDNODE = new Error('Unexpected node id')
+const EUNEXPECTEDNODE = new Error('Unexpected node id')
 EUNEXPECTEDNODE.code = 'EUNEXPECTEDNODE'
 
-module.exports = RPC
-
-function RPC (opts) {
+export default function RPC (opts) {
   if (!(this instanceof RPC)) return new RPC(opts)
   if (!opts) opts = {}
 
-  var self = this
+  const self = this
 
   this.timeout = opts.timeout || 2000
   this.inflight = 0
@@ -33,13 +32,13 @@ function RPC (opts) {
   this._reqs = []
   this._timer = setInterval(check, Math.floor(this.timeout / 4))
 
-  events.EventEmitter.call(this)
+  EventEmitter.call(this)
 
   function check () {
-    var missing = self.inflight
+    let missing = self.inflight
     if (!missing) return
-    for (var i = 0; i < self._reqs.length; i++) {
-      var req = self._reqs[i]
+    for (let i = 0; i < self._reqs.length; i++) {
+      const req = self._reqs[i]
       if (!req) continue
       if (req.ttl) req.ttl--
       else self._cancel(i, ETIMEDOUT)
@@ -60,31 +59,34 @@ function RPC (opts) {
     if (self.destroyed) return
     if (!rinfo.port) return // seems like a node bug that this is nessesary?
 
+    let message = null
     try {
-      var message = bencode.decode(buf)
+      message = bencode.decode(buf)
     } catch (e) {
       return self.emit('warning', e)
     }
 
-    var type = message && message.y && message.y.toString()
+    const type = message && message.y && arr2text(message.y)
 
     if (type === 'r' || type === 'e') {
-      if (!Buffer.isBuffer(message.t)) return
+      if (!ArrayBuffer.isView(message.t)) return
 
+      let tid = null
       try {
-        var tid = message.t.readUInt16BE(0)
+        const view = new DataView(message.t.buffer)
+        tid = view.getUint16(0)
       } catch (err) {
         return self.emit('warning', err)
       }
 
-      var index = self._ids.indexOf(tid)
+      const index = self._ids.indexOf(tid)
       if (index === -1 || tid === 0) {
         self.emit('response', message, rinfo)
         self.emit('warning', new Error('Unexpected transaction id: ' + tid))
         return
       }
 
-      var req = self._reqs[index]
+      const req = self._reqs[index]
       if (req.peer.host !== rinfo.address) {
         self.emit('response', message, rinfo)
         self.emit('warning', new Error('Out of order response'))
@@ -96,8 +98,9 @@ function RPC (opts) {
       self.inflight--
 
       if (type === 'e') {
-        var isArray = Array.isArray(message.e)
-        var err = new Error(isArray ? message.e.join(' ') : 'Unknown error')
+        const isArray = Array.isArray(message.e)
+        if (isArray) message.e = message.e.map(e => ArrayBuffer.isView(e) ? arr2text(e) : e)
+        const err = new Error(isArray ? message.e.join(' ') : 'Unknown error')
         err.code = isArray && message.e.length && typeof message.e[0] === 'number' ? message.e[0] : 0
         req.callback(err, message, rinfo, req.message)
         self.emit('update')
@@ -105,7 +108,7 @@ function RPC (opts) {
         return
       }
 
-      var rid = message.r && message.r.id
+      const rid = message.r && message.r.id
       if (req.peer && req.peer.id && rid && !req.peer.id.equals(rid)) {
         req.callback(EUNEXPECTEDNODE, null, rinfo)
         self.emit('update')
@@ -125,7 +128,7 @@ function RPC (opts) {
   }
 }
 
-util.inherits(RPC, events.EventEmitter)
+util.inherits(RPC, EventEmitter)
 
 RPC.prototype.address = function () {
   return this.socket.address()
@@ -140,7 +143,7 @@ RPC.prototype.error = function (peer, req, error, cb) {
 }
 
 RPC.prototype.send = function (peer, message, cb) {
-  var buf = bencode.encode(message)
+  const buf = bencode.encode(message)
   this.socket.send(buf, 0, buf.length, peer.port, peer.address || peer.host, cb || noop)
 }
 
@@ -153,7 +156,7 @@ RPC.prototype.destroy = function (cb) {
   this.destroyed = true
   clearInterval(this._timer)
   if (cb) this.socket.on('close', cb)
-  for (var i = 0; i < this._ids.length; i++) this._cancel(i)
+  for (let i = 0; i < this._ids.length; i++) this._cancel(i)
   this.socket.close()
 }
 
@@ -161,42 +164,43 @@ RPC.prototype.query = function (peer, query, cb) {
   if (!cb) cb = noop
   if (!this.isIP(peer.host)) return this._resolveAndQuery(peer, query, cb)
 
-  var message = {
-    t: Buffer.allocUnsafe(2),
+  const message = {
+    t: new Uint8Array(2),
     y: 'q',
     q: query.q,
     a: query.a
   }
 
-  var req = {
+  const req = {
     ttl: 4,
-    peer: peer,
-    message: message,
+    peer,
+    message,
     callback: cb
   }
 
   if (this._tick === 65535) this._tick = 0
-  var tid = ++this._tick
+  const tid = ++this._tick
 
-  var free = this._ids.indexOf(0)
+  let free = this._ids.indexOf(0)
   if (free === -1) free = this._ids.push(0) - 1
   this._ids[free] = tid
   while (this._reqs.length < free) this._reqs.push(null)
   this._reqs[free] = req
 
   this.inflight++
-  message.t.writeUInt16BE(tid, 0)
+  const view = new DataView(message.t.buffer)
+  view.setUint16(0, tid)
   this.send(peer, message)
   return tid
 }
 
 RPC.prototype.cancel = function (tid, err) {
-  var index = this._ids.indexOf(tid)
+  const index = this._ids.indexOf(tid)
   if (index > -1) this._cancel(index, err)
 }
 
 RPC.prototype._cancel = function (index, err) {
-  var req = this._reqs[index]
+  const req = this._reqs[index]
   this._ids[index] = 0
   this._reqs[index] = null
   if (req) {
@@ -208,7 +212,7 @@ RPC.prototype._cancel = function (index, err) {
 }
 
 RPC.prototype._resolveAndQuery = function (peer, query, cb) {
-  var self = this
+  const self = this
 
   dns.lookup(peer.host, function (err, ip) {
     if (err) return cb(err)

@@ -12,16 +12,16 @@ npm install k-rpc-socket
 ## Usage
 
 ``` js
-var rpc = require('k-rpc-socket')
+import rpc from 'k-rpc-socket'
 
-var socket = rpc()
+const socket = rpc()
 
 socket.on('query', function (query, peer) {
   socket.response(peer, query, {echo: query.a})
 })
 
 socket.bind(10000, function () {
-  var anotherSocket = rpc()
+  const anotherSocket = rpc()
   anotherSocket.query({host: '127.0.0.1', port: 10000}, {q: 'echo', a: {hello: 'world'}}, function (err, response) {
     console.log(response.r) // prints {echo: {hello: Buffer('world')}}
   })
@@ -30,7 +30,7 @@ socket.bind(10000, function () {
 
 ## API
 
-#### `var socket = rpc([options])`
+#### `const socket = rpc([options])`
 
 Create a new k-rpc-socket. Options include:
 
