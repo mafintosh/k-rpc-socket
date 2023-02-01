@@ -84,7 +84,7 @@ tape('query + error', function (t) {
 })
 
 tape('timeout', function (t) {
-  const socket = RPC({ timeout: 100 })
+  const socket = new RPC({ timeout: 100 })
 
   socket.query({ host: 'example.com', port: 12345 }, { q: 'timeout' }, function (err) {
     socket.destroy()
